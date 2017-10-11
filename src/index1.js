@@ -45,7 +45,9 @@ ymaps.ready(function () {
         clusterBalloonContentLayoutWidth: 300,
         clusterBalloonContentLayoutHeight: 230,
         // Устанавливаем максимальное количество элементов в нижней панели на одной странице
-        clusterBalloonPagerSize: 5
+        clusterBalloonPagerSize: 5,
+        // Устанавливает видимость метки кластера при открытии его балуна
+        clusterHideIconOnBalloonOpen: false
         // Настройка внешего вида нижней панели.
         // Режим marker рекомендуется использовать с небольшим количеством элементов.
         // clusterBalloonPagerType: 'marker',
@@ -65,7 +67,7 @@ ymaps.ready(function () {
         // ----- Событие - Нажатие кнопки мыши на карте
     map.events.add('click', function (e) {
         coords = e.get('coords');
-        console.log('Получаем координаты-', coords);
+        // console.log('Получаем координаты-', coords);
         // Определяем адресс по координатам
         getAddress(coords);
 
@@ -108,13 +110,13 @@ ymaps.ready(function () {
                 '</div>' +
                 '<form id = "Review" name = "youReview" >' +
                 '<div class = "youReview_title" style="color: #ff8663; "> ВАШ ОТЗЫВ </div>' +
-                '<input name = "rname" type="text" placeholder="Ваше имя" style="width: 360px; height: 30px;' +
-                'margin-top: 15px; border-radius: 20px; padding-left: 15px; border: 1px solid #c4c4c4;' +
-                'font-size: 16px; ">' +
-                '<input name = "rlocal" type="text" placeholder="Укажите место" style="width: 360px;' +
+                '<input name = "rname" type="text" placeholder="Ваше имя" required style="width: 360px; +' +
+                ' height: 30px;' + 'margin-top: 15px; border-radius: 20px; padding-left: 15px; +' +
+                ' border: 1px solid #c4c4c4;' + 'font-size: 16px; ">' +
+                '<input name = "rlocal" type="text" placeholder="Укажите место" required style="width: 360px;' +
                 'height: 30px; border-radius: 20px; padding-left: 15px; border: 1px solid #c4c4c4;' +
                 'font-size: 16px; margin-top: 15px">' +
-                '<textarea  name= "rtext" placeholder="Поделитесь впечатлениями" style="width: 360px;' +
+                '<textarea  name= "rtext" placeholder="Поделитесь впечатлениями" required style="width: 360px;' +
                 'height: 130px; border-radius: 20px; padding-left: 15px; border: 1px solid #c4c4c4;' +
                 'font-size: 16px; margin-top: 15px">' + '</textarea>' +
                 '<input type="submit" value = "Добавить" style="width: 88px; background-color: #ff8663;' +
@@ -161,7 +163,7 @@ ymaps.ready(function () {
                             if (e.target.className == 'title__cross') { // если нажат крестик - закрытия формы
                                 map.balloon.close(); // закрываем баллун
                             }
-                            if (e.target.type == 'submit') { // если нажата кнопка - submit
+                            if (e.target.type == 'submit') { // если нажата кнопка - submit = ДОБАВИТЬ
                                 let rname, rlocal, rtext, address;
 
                                 let elForm = e.target.parentElement;
@@ -169,59 +171,81 @@ ymaps.ready(function () {
                                 for (let i = 0; i < elForm.children.length; i++) {
                                     if (elForm.children[i].name == 'rname') { // получаем имя написавшего отзыв
                                         rname = elForm.children[i].value;
+                                        elForm.children[i].value = '';
                                     }
                                     if (elForm.children[i].name == 'rlocal') { // получаем место отзыва
                                         rlocal = elForm.children[i].value;
+                                        elForm.children[i].value = '';
                                     }
                                     if (elForm.children[i].name == 'rtext') { // получаем текст отзыва
                                         rtext = elForm.children[i].value;
+                                        elForm.children[i].value = '';
                                     }
                                 }
-                                // получаем  адресс метки
-                                address = firstGeoObject.getAddressLine();
-                                // формируем объект отзыва
-                                Obj = {address: address, name: rname, local: rlocal, text: rtext};
-                                // добавляем объект в массив объектов
-                                ArrayObj.push(Obj);
-                                // записываем массив объектов в хранилище
-                                storage.Review = JSON.stringify(ArrayObj);
+                                if (rname == '' || rlocal == '' || rtext == '') {
+                                    alert('Поля отзыва заполнены не полностью. Заполните полностью все поля'
+                                        + ' или откажитесь от заполнения, нажав на крестик');
+                                    map.balloon.open([coords[0], coords[1]], address, {
+                                        // Опция: не показываем кнопку закрытия.
+                                        // balloonContentHeader: 'Мой баллун',
+                                        contentLayout: MyballoonContentLayoutClass,
+                                        closeButton: false,
+                                        maxHeight: 530,
+                                        maxWidth: 380
+                                    });
+                                } else {
+                                    /* console.log('rname=', rname);
+                                    console.log('rlocal=', rlocal);
+                                    console.log('rtext=', rtext);
+                                    */
+                                    // получаем  адресс метки
+                                    address = firstGeoObject.getAddressLine();
+                                    // формируем объект отзыва
+                                    Obj = { address: address, name: rname, local: rlocal, text: rtext };
+                                    // добавляем объект в массив объектов
+                                    ArrayObj.push(Obj);
+                                    // записываем массив объектов в хранилище
+                                    storage.Review = JSON.stringify(ArrayObj);
 
-                                // Получаем поле, куда будем записывать отзыв
-                                reviewText = e.target.parentElement.parentElement.childNodes[1];
-                                // формируем запись отзыва
-                                texts = texts + '<b>' + rname + '</b>' + ' ' + rlocal + '<br>' + rtext + '<br>';
-                                reviewText.innerHTML = texts;
-                                reviewTexts = reviewText.innerText; // текст отзыва записывем в глоб.пер.
+                                    // Получаем поле, куда будем записывать отзыв
+                                    reviewText = e.target.parentElement.parentElement.childNodes[1];
+                                    // формируем запись отзыва
+                                    texts = texts + '<b>' + rname + '</b>' + ' ' + rlocal + '<br>' + rtext + '<br>';
+                                    reviewText.innerHTML = texts;
+                                    reviewTexts = reviewText.innerText; // текст отзыва записывем в глоб.пер.
 
-                                //
-                                ArrayObj = JSON.parse(storage.Review);
-                                let counterMark = 0;
+                                    //
+                                    ArrayObj = JSON.parse(storage.Review);
+                                    let counterMark = 0;
 
-                                for (let i = 0; i < ArrayObj.length; i++) {
-                                    // console.log('address-!!=', address);
-                                    // counterMark = counterMark +1;
-                                    if (ArrayObj[i].address == address && counterMark == 0 && cluster == 0) {
-                                        counterMark = counterMark + 1;
-                                        /* console.log('ArrayObj[i]-0=', ArrayObj[i], 'i=', i);
-                                        console.log('counterMark-0=', counterMark);
-                                        console.log('address-0=', address);
-                                        console.log('coords-!!=', coords);
-                                        */
-                                        reviewTexts = ArrayObj[i].text;
-                                        let place = ArrayObj[i].local;
-                                        placemark.properties.set({
-                                            balloonContentHeader: place,
-                                            balloonContentFooter: reviewTexts
-                                        });
-                                        placemarks.push(placemark); // добаляем метку в массив  меток
-                                        // console.log('placemarks-00=', placemarks);
-                                        clusterer.add(placemarks); // записываем  метку в кластер
-                                        // console.log('clusterer=', clusterer.getGeoObjects());
-                                        map.geoObjects.add(clusterer); // добапвляем кластер на карту
+                                    for (let i = 0; i < ArrayObj.length; i++) {
+                                        // console.log('address-!!=', address);
+                                        // counterMark = counterMark +1;
+                                        if (ArrayObj[i].address == address && counterMark == 0 && cluster == 0) {
+                                            counterMark = counterMark + 1;
+                                            /* console.log('ArrayObj[i]-0=', ArrayObj[i], 'i=', i);
+                                            console.log('counterMark-0=', counterMark);
+                                            console.log('address-0=', address);
+                                            console.log('coords-!!=', coords);
+                                            */
+                                            reviewTexts = ArrayObj[i].text;
+                                            let place = ArrayObj[i].local;
+                                            placemark.properties.set({
+                                                balloonContentHeader: place,
+                                                balloonContentFooter: reviewTexts
+                                            });
+                                            placemarks.push(placemark); // добаляем метку в массив  меток
+                                            // console.log('placemarks-00=', placemarks);
+                                            clusterer.add(placemarks); // записываем  метку в кластер
+                                            // console.log('clusterer=', clusterer.getGeoObjects());
+                                            map.geoObjects.add(clusterer); // добапвляем кластер на карту
+                                        }
                                     }
-                                }
 
-                                e.preventDefault(); // отменяем стандартные действия кнопки -submit
+                                    e.preventDefault(); // отменяем стандартные действия кнопки -submit
+
+
+                                }
 
                             } // end if - нажати кнопки - submit
                             // console.log('E=', e)
@@ -258,24 +282,43 @@ ymaps.ready(function () {
         })
     }
 
+        // clusterer.balloon.events.add('click', function (e) {
+    //clusterer.balloon.events.add('click', function (e) {
     clusterer.balloon.events.add('click', function (e) {
             // console.log('E-clasterer=', e);
 
             let clastererLink = document.querySelector('.ballon_body');
 
-            clastererLink = clastererLink.innerText;
-            // console.log('clastererLink-1=', clastererLink);
-            // console.log('E-clasterer=', e.originalEvent.target);
+            // console.log('clastererLink-0=', clastererLink);
 
-            ymaps.geocode(clastererLink).then(function (res) {
-                // выбираем только первый объект по найденным координатам
-                let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-                //console.log('coordsAddress-1=', coordsAddress);
-                getAddress(coordsAddress, cluster = 1);
+            clastererLink.addEventListener('click', function (e) {
+                //console.log('E-clasterer-0=', e.target.tagName);
+                if (e.target.tagName == 'A') {
+                    clastererLink = clastererLink.innerText;
+                    //console.log('clastererLink-1=', clastererLink);
+                    //console.log('E-clasterer-1=', e);
 
+                    ymaps.geocode(clastererLink).then(function (res) {
+                        // выбираем только первый объект по найденным координатам
+                        let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
+                        //console.log('coordsAddress-1=', coordsAddress);
+                        getAddress(coordsAddress, cluster = 1);
+
+                    })
+                }
             })
 
-    })
+                /* clastererLink = clastererLink.innerText;
+             console.log('clastererLink-1=', clastererLink);
+             console.log('E-clasterer=', e.originalEvent.target);
 
-    clusterer.balloon.open(clusterer.getClusters()[0]);
+             ymaps.geocode(clastererLink).then(function (res) {
+             // выбираем только первый объект по найденным координатам
+             let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
+             //console.log('coordsAddress-1=', coordsAddress);
+             getAddress(coordsAddress, cluster = 1);
+
+             }) */
+
+    })
 });
