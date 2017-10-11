@@ -9,3 +9,4 @@
 * `npm run codestyle` - проверить стиль кода
 
 Запускать проект  /src/index.html
+Рабочий код в index1.js
