@@ -28,7 +28,7 @@ ymaps.ready(function () {
         // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
         '<h3 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h3>' +
             '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>'+ '<br>' +
-            '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }} +' +
+            '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }} ' +
         '</div>'
     );
 
@@ -263,65 +263,46 @@ ymaps.ready(function () {
     }
 
     clusterer.balloon.events.add('open', function (e) {
+        console.log('E-0 = ', e);
+        let balloonContent = document.querySelector('.ymaps-2-1-55-balloon__content');
 
-        let clastererLink = document.querySelector('.ballon_body');
-
-        clastererLink.addEventListener('click', function (e) {
-            console.log('E-clasterer-0=', e.target.tagName);
-
-            if (e.target.tagName == 'A') {
-                clastererLink = clastererLink.innerText;
-                //console.log('clastererLink-1=', clastererLink);
-                //console.log('E-clasterer-1=', e);
-
-                ymaps.geocode(clastererLink).then(function (res) {
-                    // выбираем только первый объект по найденным координатам
-                    let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-
-                    getAddress(coordsAddress, cluster = 1);
-                })
-            }
-        })
-
-        clusterer.balloon.events.add('click', function (e) {
-
+        balloonContent.addEventListener('click', function (e) {
             let clastererLink = document.querySelector('.ballon_body');
 
             clastererLink.addEventListener('click', function (e) {
                 console.log('E-clasterer-0=', e.target.tagName);
+
                 if (e.target.tagName == 'A') {
                     clastererLink = clastererLink.innerText;
+                    console.log('clastererLink-0-!!!=', clastererLink);
+                    console.log('E-clasterer-0-!!!=', e);
 
                     ymaps.geocode(clastererLink).then(function (res) {
                         // выбираем только первый объект по найденным координатам
                         let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
 
                         getAddress(coordsAddress, cluster = 1);
-
                     })
                 }
             })
-        })
+        });
 
-        let caruselPage = document.querySelector('.ymaps-2-1-55-b-cluster-carousel__pager');
-        //console.log('caruselPage-0-!!!=', caruselPage);
-        caruselPage.addEventListener('click', function (e) {
-            let clastererLink = document.querySelector('.ballon_body');
+        let clastererLink = document.querySelector('.ballon_body');
+
             clastererLink.addEventListener('click', function (e) {
-
+                console.log('E-clasterer-1=', e.target.tagName);
                 if (e.target.tagName == 'A') {
                     clastererLink = clastererLink.innerText;
 
                     ymaps.geocode(clastererLink).then(function (res) {
                         // выбираем только первый объект по найденным координатам
                         let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-                        //console.log('coordsAddress-1=', coordsAddress);
+
                         getAddress(coordsAddress, cluster = 1);
 
                     })
                 }
             })
-        })
     })
 
 });
