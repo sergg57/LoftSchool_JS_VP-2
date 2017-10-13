@@ -23,12 +23,13 @@ ymaps.ready(function () {
             console.log('Хранилище - storage.Review - очищено');
         }
 
-    // Создаем собственный макет с информацией о выбранном геообъекте.
+    // Создаем собственный макет балуна кластера с информацией о выбранном геообъекте.
     var customItemContentLayout = ymaps.templateLayoutFactory.createClass(
         // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
         '<h3 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h3>' +
             '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>'+ '<br>' +
-            '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }}</div>'
+            '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }} +' +
+        '</div>'
     );
 
     var clusterer = new ymaps.Clusterer({
@@ -72,10 +73,6 @@ ymaps.ready(function () {
         getAddress(coords);
 
     });
-
-    //clusterer.add(placemarks);
-    //console.log('clusterer-endd=', clusterer.getGeoObjects());
-    //map.geoObjects.add(clusterer);
 
     // Функция Определяет адрес по координатам (обратное геокодирование).
     function getAddress(coords, cluster = 0) {
@@ -159,6 +156,7 @@ ymaps.ready(function () {
 
                         // Собитие нажатие кнопки мыши внутри формы отзыва
                         Review.addEventListener('click', function (e) {
+                            e.preventDefault(); // отменяем стандартные действия кнопки -submit
 
                             if (e.target.className == 'title__cross') { // если нажат крестик - закрытия формы
                                 map.balloon.close(); // закрываем баллун
@@ -194,10 +192,6 @@ ymaps.ready(function () {
                                         maxWidth: 380
                                     });
                                 } else {
-                                    /* console.log('rname=', rname);
-                                    console.log('rlocal=', rlocal);
-                                    console.log('rtext=', rtext);
-                                    */
                                     // получаем  адресс метки
                                     address = firstGeoObject.getAddressLine();
                                     // формируем объект отзыва
@@ -219,15 +213,9 @@ ymaps.ready(function () {
                                     let counterMark = 0;
 
                                     for (let i = 0; i < ArrayObj.length; i++) {
-                                        // console.log('address-!!=', address);
-                                        // counterMark = counterMark +1;
+
                                         if (ArrayObj[i].address == address && counterMark == 0 && cluster == 0) {
                                             counterMark = counterMark + 1;
-                                            /* console.log('ArrayObj[i]-0=', ArrayObj[i], 'i=', i);
-                                            console.log('counterMark-0=', counterMark);
-                                            console.log('address-0=', address);
-                                            console.log('coords-!!=', coords);
-                                            */
                                             reviewTexts = ArrayObj[i].text;
                                             let place = ArrayObj[i].local;
                                             placemark.properties.set({
@@ -241,17 +229,9 @@ ymaps.ready(function () {
                                             map.geoObjects.add(clusterer); // добапвляем кластер на карту
                                         }
                                     }
-
-                                    e.preventDefault(); // отменяем стандартные действия кнопки -submit
-
-
                                 }
-
                             } // end if - нажати кнопки - submit
-                            // console.log('E=', e)
-
                         })
-                        // console.log('placemarks-build', placemarks)
                     } // end build function
                 });
             // открываем баллун
@@ -282,15 +262,57 @@ ymaps.ready(function () {
         })
     }
 
-        // clusterer.balloon.events.add('click', function (e) {
-    //clusterer.balloon.events.add('click', function (e) {
-    clusterer.balloon.events.add('click', function (e) {
-            // console.log('E-clasterer=', e);
+    clusterer.balloon.events.add('open', function (e) {
+            //console.log('E-clasterer=', e);
+            //console.log('E-clasterer-DATA=', e.originalEvent.target);
+        let clastererLink = document.querySelector('.ballon_body');
+
+            //console.log('clastererLink-0=', clastererLink);
+
+        clastererLink.addEventListener('click', function (e) {
+            console.log('E-clasterer-0=', e.target.tagName);
+
+            if (e.target.tagName == 'A') {
+                clastererLink = clastererLink.innerText;
+                //console.log('clastererLink-1=', clastererLink);
+                //console.log('E-clasterer-1=', e);
+
+                ymaps.geocode(clastererLink).then(function (res) {
+                    // выбираем только первый объект по найденным координатам
+                    let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
+                    //console.log('coordsAddress-1=', coordsAddress);
+                    getAddress(coordsAddress, cluster = 1);
+                    //clusterer.balloon.close(); // закрываем баллун
+                })
+            }
+        })
+
+        clusterer.balloon.events.add('click', function (e) {
 
             let clastererLink = document.querySelector('.ballon_body');
 
-            // console.log('clastererLink-0=', clastererLink);
+            clastererLink.addEventListener('click', function (e) {
+                console.log('E-clasterer-0=', e.target.tagName);
+                if (e.target.tagName == 'A') {
+                    clastererLink = clastererLink.innerText;
+                    //console.log('clastererLink-1=', clastererLink);
+                    //console.log('E-clasterer-1=', e);
 
+                    ymaps.geocode(clastererLink).then(function (res) {
+                        // выбираем только первый объект по найденным координатам
+                        let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
+                        //console.log('coordsAddress-1=', coordsAddress);
+                        getAddress(coordsAddress, cluster = 1);
+
+                    })
+                }
+            })
+        })
+
+        let caruselPage = document.querySelector('.ymaps-2-1-55-b-cluster-carousel__pager');
+        //console.log('caruselPage-0-!!!=', caruselPage);
+        caruselPage.addEventListener('click', function (e) {
+            let clastererLink = document.querySelector('.ballon_body');
             clastererLink.addEventListener('click', function (e) {
                 //console.log('E-clasterer-0=', e.target.tagName);
                 if (e.target.tagName == 'A') {
@@ -307,18 +329,7 @@ ymaps.ready(function () {
                     })
                 }
             })
-
-                /* clastererLink = clastererLink.innerText;
-             console.log('clastererLink-1=', clastererLink);
-             console.log('E-clasterer=', e.originalEvent.target);
-
-             ymaps.geocode(clastererLink).then(function (res) {
-             // выбираем только первый объект по найденным координатам
-             let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-             //console.log('coordsAddress-1=', coordsAddress);
-             getAddress(coordsAddress, cluster = 1);
-
-             }) */
-
+        })
     })
+
 });
