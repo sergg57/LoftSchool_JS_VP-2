@@ -269,40 +269,19 @@ ymaps.ready(function () {
         balloonContent.addEventListener('click', function (e) {
             let clastererLink = document.querySelector('.ballon_body');
 
-            clastererLink.addEventListener('click', function (e) {
-                console.log('E-clasterer-0=', e.target.tagName);
+            if (e.target.tagName =='A') {
+                clastererLink = clastererLink.innerText;
+                console.log('clastererLink-0-!!!=', clastererLink);
+                console.log('E-clasterer-0-!!!=', e);
 
-                if (e.target.tagName == 'A') {
-                    clastererLink = clastererLink.innerText;
-                    console.log('clastererLink-0-!!!=', clastererLink);
-                    console.log('E-clasterer-0-!!!=', e);
+                ymaps.geocode(clastererLink).then(function (res) {
+                    // выбираем только первый объект по найденным координатам
+                    let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
 
-                    ymaps.geocode(clastererLink).then(function (res) {
-                        // выбираем только первый объект по найденным координатам
-                        let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-
-                        getAddress(coordsAddress, cluster = 1);
-                    })
-                }
-            })
+                    getAddress(coordsAddress, cluster = 1);
+                })
+            }
         });
-
-        let clastererLink = document.querySelector('.ballon_body');
-
-            clastererLink.addEventListener('click', function (e) {
-                console.log('E-clasterer-1=', e.target.tagName);
-                if (e.target.tagName == 'A') {
-                    clastererLink = clastererLink.innerText;
-
-                    ymaps.geocode(clastererLink).then(function (res) {
-                        // выбираем только первый объект по найденным координатам
-                        let coordsAddress = res.geoObjects.get(0).geometry.getCoordinates();
-
-                        getAddress(coordsAddress, cluster = 1);
-
-                    })
-                }
-            })
     })
 
 });
